@@ -55,6 +55,16 @@ steps:
     script: |
       docker pull mariadb:10.6.2
       docker build --no-cache -t verademo .
+      echo directory in container step
+      ls -lh
+
+- task: Bash@3
+  displayName: Check directory
+  inputs:
+    targetType: 'inline'
+    script: |
+      echo directory after container step
+      ls -lh
 
 - task: Bash@3
   displayName: 'Container image scan'
