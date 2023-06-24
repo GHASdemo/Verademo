@@ -40,7 +40,7 @@ steps:
       unzip -o pipeline-scan-LATEST.zip
       java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f /home/vsts/work/1/s/app/target/verademo.war || true
 - publish: $(System.DefaultWorkingDirectory)/results.json
-  artifact: VeracodeBaseline
+  artifact: VeracodeSASTpipeline
 
 - task: Bash@3
   displayName: 'Container image scan'
@@ -56,7 +56,7 @@ steps:
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: 'verademo.json'
-    ArtifactName: 'verademo.json'
+    ArtifactName: 'VeracodeContainerScan'
     publishLocation: 'Container'
 
 # - task: Bash@3
