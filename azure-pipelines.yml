@@ -20,6 +20,12 @@ steps:
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
 - task: Bash@3
+  displayName: Veracode SCA
+  inputs:
+    targetType: 'inline'
+    script: |
+      curl -sSL https://download.sourceclear.com/ci.sh | sh
+- task: Bash@3
   displayName: Veracode Pipeline
   inputs:
     targetType: 'inline'
