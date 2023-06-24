@@ -7,6 +7,8 @@ trigger:
 - main
 pool:
   vmImage: 'ubuntu-latest'
+  demands: 
+    - java
 steps:
 - task: Maven@3
   displayName: Build with Maven
@@ -25,6 +27,8 @@ steps:
     targetType: 'inline'
     script: |
       curl -sSL https://download.sourceclear.com/ci.sh | sh
+    # env:
+    #   SRCCLR_API_TOKEN: $(SRCCLR_API_TOKEN)
 - task: Bash@3
   displayName: Veracode Pipeline
   inputs:
