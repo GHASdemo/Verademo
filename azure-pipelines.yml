@@ -40,7 +40,7 @@ steps:
           # export SRCCLR_SCM_REF=master
           # export SRCCLR_SCM_REF_TYPE=branch
           # export SRCCLR_SCM_REV=123456
-          curl -sSL https://download.sourceclear.com/ci.sh | bash -s --scan
+          curl -sSL https://download.sourceclear.com/ci.sh | bash -s -- scan
 
 # - task: Bash@3
 #   displayName: Veracode Pipeline
