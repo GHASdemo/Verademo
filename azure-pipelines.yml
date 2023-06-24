@@ -26,7 +26,7 @@ steps:
   inputs:
      targetType: 'inline'
      script: |
-          curl -sSL https://download.sourceclear.com/ci.sh | bash -s -- scan ./app
+          curl -sSL https://download.sourceclear.com/ci.sh | bash -s -- scan ./app --update-advisor
   # env:
   #   SRCCLR_API_TOKEN: $(SRCCLR_API_TOKEN)
 
