@@ -45,7 +45,7 @@ steps:
   displayName: Build a container image
   inputs:
     repository: $(Build.SourcesDirectory)
-    command: build
+    command: build --no-cache -t verademo
     Dockerfile: ./Dockerfile
 
 - task: Bash@3
