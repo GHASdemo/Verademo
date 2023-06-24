@@ -41,12 +41,12 @@ steps:
 - publish: $(System.DefaultWorkingDirectory)/results.json
   artifact: VeracodeSASTpipeline
 
- - task: Docker@2
-   displayName: Build a container image
-   inputs:
-     repository: $(Build.SourcesDirectory)
-     command: build
-     Dockerfile: ./Dockerfile
+- task: Docker@2
+  displayName: Build a container image
+  inputs:
+    repository: $(Build.SourcesDirectory)
+    command: build
+    Dockerfile: ./Dockerfile
 
 - task: Bash@3
   displayName: 'Container image scan'
