@@ -33,7 +33,7 @@ stages:
 
 - stage: Test
   displayName: AppSec Testing
-  dependsOn: Build
+  # dependsOn: Build
   jobs: 
   - job: SCA
     steps:
