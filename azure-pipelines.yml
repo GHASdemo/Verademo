@@ -10,7 +10,7 @@ pool:
 
 stages:
 - stage: Build
-  displayName: Build and Test
+  displayName: Build application
   jobs: 
   - job: Build
     # condition: "false"
@@ -27,14 +27,14 @@ stages:
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
         goals: 'package'
     # - publish: /home/vsts/work/1/s/app/target/verademo.war
-    # - publish: $(System.DefaultWorkingDirectory)/app/target/verademo.war
-    #   displayName: 'Publish app for testing'
-    #   artifact: verademo.war
+    - publish: $(System.DefaultWorkingDirectory)/app/target/verademo.war
+      displayName: 'Publish app for testing'
+      artifact: verademo.war
 
-# - stage: Test
-#   displayName: AppSec Testing
-#   dependsOn: Build
-#   jobs: 
+- stage: Test
+  displayName: AppSec Testing
+  dependsOn: Build
+  jobs: 
   - job: SCA
     # condition: "false"
     steps:
@@ -43,7 +43,8 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          curl -sSL https://download.sourceclear.com/ci.sh | bash -s -- scan ./app --json ./scaResults.json --update-advisor
+          curl -sSL https://download.sourceclear.com/ci.sh | bash -s -- scan ./app --update-advisor
+          # curl -sSL https://download.sourceclear.com/ci.sh | bash -s -- scan ./app --json ./scaResults.json --update-advisor
       # env:
       #   SRCCLR_API_TOKEN: $(SRCCLR_API_TOKEN)
     # - publish: scaResults.json
@@ -53,8 +54,8 @@ stages:
     # condition: "false"
     dependsOn: Build
     steps: 
-    # - download: current
-    #   artifact: verademo.war
+    - download: current
+      artifact: verademo.war
     - task: Bash@3
       displayName: Veracode SAST Pipeline Scan
       inputs:
@@ -62,23 +63,17 @@ stages:
         script: |
           curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
           unzip -o pipeline-scan-LATEST.zip
-          java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f $(System.DefaultWorkingDirectory)/app/target/verademo.war || true
+          ls -lh
+          java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f ./verademo.war || true
     - publish: $(System.DefaultWorkingDirectory)/results.json
       artifact: VeracodeSASTpipeline
 
 - stage: Container
-  # condition: "false"
+  condition: "false"
   displayName: Containerize app
   jobs:
   - job: Build_image
     steps:
-  # - task: Docker@2
-  #   displayName: Build a container image
-  #   inputs:
-  #     repository: $(Build.SourcesDirectory)
-  #     command: build --no-cache -t verademo
-  #     Dockerfile: ./Dockerfile
-
     - task: Bash@3
       displayName: Build a container image
       inputs:
@@ -86,16 +81,6 @@ stages:
         script: |
           docker pull mariadb:10.6.2
           docker build --no-cache -t verademo .
-          echo directory in container step
-          ls -lh
-
-  # - task: Bash@3
-  #   displayName: Check directory
-  #   inputs:
-  #     targetType: 'inline'
-  #     script: |
-  #       echo directory after container step
-  #       ls -lh
 
   - job: Test_image
     steps:
