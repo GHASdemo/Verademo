@@ -161,9 +161,26 @@ stages:
   jobs:
   - job: Deploy
     condition: "false"
+    steps:
+    - task: Bash@3
+      displayName: Run container
+      inputs:
+        targetType: inline
+        script: |
+          docker run --rm -it -p 127.0.0.1:8080:8080 --entrypoint bash -v "$(pwd)/app:/app" verademo
 
 - stage: Test_Deploy
   displaName: DAST Scan
   jobs:
   - job: DAST
     condition: "false"
+    steps:
+    - task: Bash@3
+      displayName: Run DAST scan
+      inputs:
+        targetType: inline
+        script: |
+          http --auth-type=veracode_hmac POST "https://api.veracode.com/was/configservice/v1/analyses" < input.json
+
+
+
