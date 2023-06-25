@@ -13,7 +13,7 @@ stages:
   displayName: Build app and unit tests
   jobs: 
   - job: Build
-    # condition: "false"
+    condition: "false"
     steps:
     - task: Maven@3
       displayName: Build with Maven
@@ -53,8 +53,19 @@ stages:
   - job: SAST
     # condition: "false"
     steps: 
-    - download: current
-      artifact: verademo.war
+    # - download: current
+    #   artifact: verademo.war
+    - task: Maven@3
+      displayName: Build with Maven
+      inputs:
+        mavenPomFile: 'app/pom.xml'
+        mavenOptions: '-Xmx3072m'
+        javaHomeOption: 'JDKVersion'
+        jdkVersionOption: '1.8'
+        jdkArchitectureOption: 'x64'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        goals: 'package'
     - task: Bash@3
       displayName: Veracode SAST Pipeline Scan
       inputs:
@@ -64,7 +75,7 @@ stages:
           unzip -o pipeline-scan-LATEST.zip
           ls -lh ../
           ls -lh app/
-          java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f /home/vsts/work/1/verademo.war || true
+          java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f ./app/target/verademo.war || true
     - publish: $(System.DefaultWorkingDirectory)/results.json
       artifact: VeracodeSASTpipeline
 
