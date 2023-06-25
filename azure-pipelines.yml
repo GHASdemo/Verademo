@@ -10,43 +10,54 @@ pool:
 
 stages:
 - stage: Build
-  steps:
-  - task: Maven@3
-    displayName: Build with Maven
-    inputs:
-      mavenPomFile: 'app/pom.xml'
-      mavenOptions: '-Xmx3072m'
-      javaHomeOption: 'JDKVersion'
-      jdkVersionOption: '1.8'
-      jdkArchitectureOption: 'x64'
-      publishJUnitResults: true
-      testResultsFiles: '**/surefire-reports/TEST-*.xml'
-      goals: 'package'
+  displayName: Build app
+  jobs: 
+  - job: Build
+    steps:
+    - task: Maven@3
+      displayName: Build with Maven
+      inputs:
+        mavenPomFile: 'app/pom.xml'
+        mavenOptions: '-Xmx3072m'
+        javaHomeOption: 'JDKVersion'
+        jdkVersionOption: '1.8'
+        jdkArchitectureOption: 'x64'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        goals: 'package'
 
 - stage: Test
-  steps:
-  - task: Bash@3
-    displayName: 'Veracode SCA'
-    inputs:
-      targetType: 'inline'
-      script: |
-            curl -sSL https://download.sourceclear.com/ci.sh | bash -s -- scan ./app --update-advisor
-    # env:
-    #   SRCCLR_API_TOKEN: $(SRCCLR_API_TOKEN)
+  displayName: AppSec Testing
+  jobs: 
+  - job: SCA
+    steps:
+    - task: Bash@3
+      displayName: 'Veracode SCA'
+      inputs:
+        targetType: 'inline'
+        script: |
+              curl -sSL https://download.sourceclear.com/ci.sh | bash -s -- scan ./app --update-advisor
+      # env:
+      #   SRCCLR_API_TOKEN: $(SRCCLR_API_TOKEN)
 
-  - task: Bash@3
-    displayName: Veracode Pipeline
-    inputs:
-      targetType: 'inline'
-      script: |
-        curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
-        unzip -o pipeline-scan-LATEST.zip
-        java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f /home/vsts/work/1/s/app/target/verademo.war || true
-  - publish: $(System.DefaultWorkingDirectory)/results.json
-    artifact: VeracodeSASTpipeline
+  - job: SAST
+    steps: 
+    - task: Bash@3
+      displayName: Veracode Pipeline
+      inputs:
+        targetType: 'inline'
+        script: |
+          curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
+          unzip -o pipeline-scan-LATEST.zip
+          java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f /home/vsts/work/1/s/app/target/verademo.war || true
+    - publish: $(System.DefaultWorkingDirectory)/results.json
+      artifact: VeracodeSASTpipeline
 
 - stage: Container
-  steps:
+  displayName: Containerize app
+  jobs:
+  - job: Build a container image
+    steps:
   # - task: Docker@2
   #   displayName: Build a container image
   #   inputs:
@@ -54,40 +65,42 @@ stages:
   #     command: build --no-cache -t verademo
   #     Dockerfile: ./Dockerfile
 
-  - task: Bash@3
-    displayName: Build a container image
-    inputs:
-      targetType: 'inline'
-      script: |
-        docker pull mariadb:10.6.2
-        docker build --no-cache -t verademo .
-        echo directory in container step
-        ls -lh
+    - task: Bash@3
+      displayName: Build a container image
+      inputs:
+        targetType: 'inline'
+        script: |
+          docker pull mariadb:10.6.2
+          docker build --no-cache -t verademo .
+          echo directory in container step
+          ls -lh
 
-  - task: Bash@3
-    displayName: Check directory
-    inputs:
-      targetType: 'inline'
-      script: |
-        echo directory after container step
-        ls -lh
+  # - task: Bash@3
+  #   displayName: Check directory
+  #   inputs:
+  #     targetType: 'inline'
+  #     script: |
+  #       echo directory after container step
+  #       ls -lh
 
-  - task: Bash@3
-    displayName: 'Container image scan'
-    inputs:
-      targetType: 'inline'
-      script: |
-        curl -fsS https://tools.veracode.com/veracode-cli/install | sh
-        export VERACODE_API_KEY_ID=$(VERACODE_API_ID)
-        export VERACODE_API_KEY_SECRET=$(VERACODE_API_KEY)
-        ./veracode scan --type image --source veracode scan --type image \
-          --source juliantotzek/verademo:latest --output verademo.json
+  - job: Test image
+    steps:
+      - task: Bash@3
+        displayName: 'Container image scan'
+        inputs:
+          targetType: 'inline'
+          script: |
+            curl -fsS https://tools.veracode.com/veracode-cli/install | sh
+            export VERACODE_API_KEY_ID=$(VERACODE_API_ID)
+            export VERACODE_API_KEY_SECRET=$(VERACODE_API_KEY)
+            ./veracode scan --type image --source veracode scan --type image \
+              --source juliantotzek/verademo:latest --output verademo.json
 
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: 'verademo.json'
-      ArtifactName: 'VeracodeContainerScan'
-      publishLocation: 'Container'
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: 'verademo.json'
+          ArtifactName: 'VeracodeContainerScan'
+          publishLocation: 'Container'
 
 # - task: Bash@3
 #   displayName: 'Policy check'
