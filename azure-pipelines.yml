@@ -10,6 +10,7 @@ pool:
 
 stages:
 - stage: Build
+  condition: "false"
   displayName: Build app
   jobs: 
   - job: Build
@@ -41,27 +42,30 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-              curl -sSL https://download.sourceclear.com/ci.sh | bash -s -- scan ./app --update-advisor
+          curl -sSL https://download.sourceclear.com/ci.sh | bash -s -- scan ./app --json ./scaResults.json --update-advisor
+      - publish: scaResults.json
+        artifact: Results
       # env:
       #   SRCCLR_API_TOKEN: $(SRCCLR_API_TOKEN)
 
   - job: SAST
+    condition: "false"
     steps: 
     - download: current
       artifact: verademo.war
     - task: Bash@3
-      displayName: Veracode Pipeline
+      displayName: Veracode SAST Pipeline Scan
       inputs:
         targetType: 'inline'
         script: |
           curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
           unzip -o pipeline-scan-LATEST.zip
-          ls -lh $(System.DefaultWorkingDirectory)/app/target
           java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f verademo.war || true
     - publish: $(System.DefaultWorkingDirectory)/results.json
       artifact: VeracodeSASTpipeline
 
 - stage: Container
+  condition: "false"
   displayName: Containerize app
   jobs:
   - job: Build_image
