@@ -24,6 +24,7 @@ stages:
       goals: 'package'
 
 - stage: Test
+  steps:
   - task: Bash@3
     displayName: 'Veracode SCA'
     inputs:
@@ -45,6 +46,7 @@ stages:
     artifact: VeracodeSASTpipeline
 
 - stage: Container
+  steps:
   # - task: Docker@2
   #   displayName: Build a container image
   #   inputs:
