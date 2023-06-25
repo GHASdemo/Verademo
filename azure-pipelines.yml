@@ -170,7 +170,7 @@ stages:
           docker run --rm -it -p 127.0.0.1:8080:8080 --entrypoint bash -v "$(pwd)/app:/app" verademo
 
 - stage: Test_Deploy
-  displaName: DAST Scan
+  displayName: DAST Scan
   jobs:
   - job: DAST
     condition: "false"
