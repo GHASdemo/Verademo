@@ -90,6 +90,9 @@ stages:
         script: |
           docker pull mariadb:10.6.2
           docker build --no-cache -t verademo .
+          docker save verademo:latest -o $(System.DefaultWorkingDirectory)/verademo.tar
+    - publish: $(System.DefaultWorkingDirectory)/verademo.tar
+      artifact: Container
 
   - job: Test_image
     condition: "false"
