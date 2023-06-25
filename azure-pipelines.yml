@@ -52,7 +52,6 @@ stages:
 
   - job: SAST
     # condition: "false"
-    dependsOn: Build
     steps: 
     - download: current
       artifact: verademo.war
