@@ -10,10 +10,10 @@ pool:
 
 stages:
 - stage: Build
-  condition: "false"
   displayName: Build app
   jobs: 
   - job: Build
+    condition: "false"
     steps:
     - task: Maven@3
       displayName: Build with Maven
@@ -33,7 +33,7 @@ stages:
 
 - stage: Test
   displayName: AppSec Testing
-  # dependsOn: Build
+  dependsOn: Build
   jobs: 
   - job: SCA
     steps:
