@@ -53,7 +53,7 @@ stages:
   - job: SAST
     # condition: "false"
     steps: 
-    - download: $(System.DefaultWorkingDirectory)
+    - download: current
       artifact: verademo.war
     - task: Bash@3
       displayName: Veracode SAST Pipeline Scan
@@ -63,7 +63,8 @@ stages:
           curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
           unzip -o pipeline-scan-LATEST.zip
           ls -lh ../
-          java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f ./verademo.war || true
+          ls -lh app/
+          java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f /home/vsts/work/1/verademo.war || true
     - publish: $(System.DefaultWorkingDirectory)/results.json
       artifact: VeracodeSASTpipeline
 
