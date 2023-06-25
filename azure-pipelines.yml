@@ -36,7 +36,7 @@ stages:
   dependsOn: Build
   jobs: 
   - job: SCA
-    condition: "false"
+    # condition: "false"
     steps:
     - task: Bash@3
       displayName: 'Veracode SCA'
@@ -51,7 +51,7 @@ stages:
     #   artifact: Results
 
   - job: SAST
-    condition: "false"
+    # condition: "false"
     steps: 
     # - download: current
     #   artifact: verademo.war
@@ -102,8 +102,10 @@ stages:
           curl -fsS https://tools.veracode.com/veracode-cli/install | sh
           export VERACODE_API_KEY_ID=$(VERACODE_API_ID)
           export VERACODE_API_KEY_SECRET=$(VERACODE_API_KEY)
-          ./veracode scan --type archive --source verademo.tar --output verademo.json
-          ./veracode sbom --type archive --source verademo.tar --output verademo_sbom.json
+          ./veracode scan --type image --source veracode scan --type image \
+            --source juliantotzek/verademo:latest --output verademo.json
+          # ./veracode scan --type archive --source verademo.tar --output verademo.json
+          # ./veracode sbom --type archive --source verademo.tar --output verademo_sbom.json
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: 'verademo.json'
@@ -112,7 +114,7 @@ stages:
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: 'verademo_sbom.json'
-        ArtifactName: 'VerdemoSBOM'
+        ArtifactName: 'VerademoSBOM'
         publishLocation: 'Container'
     
 
