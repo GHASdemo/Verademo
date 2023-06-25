@@ -43,10 +43,10 @@ stages:
         targetType: 'inline'
         script: |
           curl -sSL https://download.sourceclear.com/ci.sh | bash -s -- scan ./app --json ./scaResults.json --update-advisor
-      - publish: scaResults.json
-        artifact: Results
       # env:
       #   SRCCLR_API_TOKEN: $(SRCCLR_API_TOKEN)
+    - publish: scaResults.json
+      artifact: Results
 
   - job: SAST
     condition: "false"
