@@ -91,28 +91,30 @@ stages:
           docker pull mariadb:10.6.2
           docker build --no-cache -t verademo .
           docker save verademo:latest -o $(System.DefaultWorkingDirectory)/verademo.tar
-    - publish: $(System.DefaultWorkingDirectory)/verademo.tar
-      artifact: Container
+    # - publish: $(System.DefaultWorkingDirectory)/verademo.tar
+    #   artifact: Container
 
   - job: Test_image
-    condition: "false"
+    dependsOn: Build_image
+    # condition: "false"
     steps:
       - task: Bash@3
         displayName: 'Container image scan'
         inputs:
           targetType: 'inline'
           script: |
-            curl -fsS https://tools.veracode.com/veracode-cli/install | sh
-            export VERACODE_API_KEY_ID=$(VERACODE_API_ID)
-            export VERACODE_API_KEY_SECRET=$(VERACODE_API_KEY)
-            ./veracode scan --type image --source veracode scan --type image \
-              --source juliantotzek/verademo:latest --output verademo.json
+            ls -lh
+            # curl -fsS https://tools.veracode.com/veracode-cli/install | sh
+            # export VERACODE_API_KEY_ID=$(VERACODE_API_ID)
+            # export VERACODE_API_KEY_SECRET=$(VERACODE_API_KEY)
+            # ./veracode scan --type image --source veracode scan --type image \
+            #   --source juliantotzek/verademo:latest --output verademo.json
 
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: 'verademo.json'
-          ArtifactName: 'VeracodeContainerScan'
-          publishLocation: 'Container'
+      # - task: PublishBuildArtifacts@1
+      #   inputs:
+      #     PathtoPublish: 'verademo.json'
+      #     ArtifactName: 'VeracodeContainerScan'
+      #     publishLocation: 'Container'
 
 # - task: Bash@3
 #   displayName: 'Policy check'
