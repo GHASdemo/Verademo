@@ -103,11 +103,18 @@ stages:
           export VERACODE_API_KEY_ID=$(VERACODE_API_ID)
           export VERACODE_API_KEY_SECRET=$(VERACODE_API_KEY)
           ./veracode scan --type archive --source verademo.tar --output verademo.json
+          ./veracode sbom --type archive --source verademo.tar --output verademo_sbom.json
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: 'verademo.json'
-        ArtifactName: 'VeracodeContainerScan'
+        ArtifactName: 'ContainerScanResults'
         publishLocation: 'Container'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: 'verademo_sbom.json'
+        ArtifactName: 'VerdemoSBOM'
+        publishLocation: 'Container'
+    
 
 
   - job: Test_image
