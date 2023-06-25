@@ -9,7 +9,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 stages:
-- stage: Build and Test
+- stage: Build
   displayName: Build app and perform AppSec testing
   jobs: 
   - job: Build
