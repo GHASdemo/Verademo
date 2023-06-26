@@ -76,6 +76,7 @@ stages:
           unzip -o pipeline-scan-LATEST.zip
           ls -lh ./
           ls -lh ../
+          ls -lh ../verademo.war
           java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f ../verademo.war || true
           # java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f ./app/target/verademo.war || true
     - publish: $(System.DefaultWorkingDirectory)/results.json
