@@ -13,7 +13,7 @@ stages:
   displayName: Build and unit tests
   jobs: 
   - job: Build
-    condition: "false"
+    # condition: "false"
     steps:
     - task: Maven@3
       displayName: Build with Maven
@@ -36,7 +36,7 @@ stages:
   dependsOn: Build
   jobs: 
   - job: SCA
-    condition: "false"
+    # condition: "false"
     steps:
     - task: Bash@3
       displayName: 'Veracode SCA'
@@ -51,21 +51,22 @@ stages:
     #   artifact: Results
 
   - job: SAST
-    condition: "false"
+    # condition: "false"
     steps: 
-    # - download: current
-    #   artifact: verademo.war
-    - task: Maven@3
-      displayName: Build with Maven
-      inputs:
-        mavenPomFile: 'app/pom.xml'
-        mavenOptions: '-Xmx3072m'
-        javaHomeOption: 'JDKVersion'
-        jdkVersionOption: '1.8'
-        jdkArchitectureOption: 'x64'
-        publishJUnitResults: true
-        testResultsFiles: '**/surefire-reports/TEST-*.xml'
-        goals: 'package'
+    - download: current
+      artifact: verademo.war
+    # - task: Maven@3
+    #   condition: "false"
+    #   displayName: Build with Maven
+    #   inputs:
+    #     mavenPomFile: 'app/pom.xml'
+    #     mavenOptions: '-Xmx3072m'
+    #     javaHomeOption: 'JDKVersion'
+    #     jdkVersionOption: '1.8'
+    #     jdkArchitectureOption: 'x64'
+    #     publishJUnitResults: true
+    #     testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    #     goals: 'package'
     - task: Bash@3
       displayName: Veracode SAST Pipeline Scan
       inputs:
@@ -73,12 +74,15 @@ stages:
         script: |
           curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
           unzip -o pipeline-scan-LATEST.zip
-          java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f ./app/target/verademo.war || true
+          ls -lh ./
+          ls -lh ../
+          java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f ../verademo.war || true
+          # java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f ./app/target/verademo.war || true
     - publish: $(System.DefaultWorkingDirectory)/results.json
       artifact: VeracodeSASTpipeline
 
 - stage: Container
-  # condition: "false"
+  condition: "false"
   displayName: Containerize and test
   jobs:
   - job: Build_image
