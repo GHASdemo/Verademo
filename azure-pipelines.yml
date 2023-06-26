@@ -13,7 +13,7 @@ stages:
   displayName: Build and unit tests
   jobs: 
   - job: Build
-    # condition: "false"
+    condition: "false"
     steps:
     - task: Maven@3
       displayName: Build with Maven
@@ -35,7 +35,7 @@ stages:
   dependsOn: Build
   jobs: 
   - job: SCA
-    # condition: "false"
+    condition: "false"
     steps:
     - task: Bash@3
       displayName: 'Veracode SCA'
@@ -50,7 +50,7 @@ stages:
     #   artifact: Results
 
   - job: SAST
-    # condition: "false"
+    condition: "false"
     steps: 
     - download: current
       artifact: verademo
@@ -78,7 +78,7 @@ stages:
         script: |
           docker pull mariadb:10.6.2
           docker build --no-cache -t verademo .
-          # docker save verademo:latest -o $(System.DefaultWorkingDirectory)/verademo.tar
+          docker save verademo:latest -o $(System.DefaultWorkingDirectory)/verademo.tar
     - publish: $(System.DefaultWorkingDirectory)/verademo.tar
       artifact: container
 
