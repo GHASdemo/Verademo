@@ -81,7 +81,7 @@ stages:
   # condition: "false"
   displayName: Containerize and test
   jobs:
-  - job: Build_and_test_image
+  - job: Build_image
     steps:
     - task: Bash@3
       displayName: Build a container image
@@ -90,9 +90,12 @@ stages:
         script: |
           docker pull mariadb:10.6.2
           docker build --no-cache -t verademo .
-          docker save verademo:latest -o $(System.DefaultWorkingDirectory)/verademo.tar
+          # docker save verademo:latest -o $(System.DefaultWorkingDirectory)/verademo.tar
     # - publish: $(System.DefaultWorkingDirectory)/verademo.tar
     #   artifact: Container
+  - job: Test_image
+    dependsOn: Build_image
+    steps:
     - task: Bash@3
       displayName: Test image
       inputs:
@@ -117,47 +120,24 @@ stages:
         PathtoPublish: 'verademo_sbom.json'
         ArtifactName: 'VerademoSBOM'
         publishLocation: 'Container'
-    
-
-
-  - job: Test_image
-    # dependsOn: Build_image
-    condition: "false"
-    steps:
-      - task: Bash@3
-        displayName: 'Container image scan'
-        inputs:
-          targetType: 'inline'
-          script: |
-            ls -lh
-            curl -fsS https://tools.veracode.com/veracode-cli/install | sh
-            export VERACODE_API_KEY_ID=$(VERACODE_API_ID)
-            export VERACODE_API_KEY_SECRET=$(VERACODE_API_KEY)
-            ./veracode scan --type image --source veracode scan --type image \
-              --source juliantotzek/verademo:latest --output verademo.json
-
-      # - task: PublishBuildArtifacts@1
-      #   inputs:
-      #     PathtoPublish: 'verademo.json'
-      #     ArtifactName: 'VeracodeContainerScan'
-      #     publishLocation: 'Container'
-
-# - task: Bash@3
-#   displayName: 'Policy check'
-#   inputs:
-#     targetType: 'inline'
-#     script: |
-#       PASS=$(jq -r '."policy-passed"' verademo.json)
-#       echo "Passed policy: $PASS"
-#       if $PASS; then
-#         exit 0
-#       else
-#         exit 1
-#       fi
+  # - job: Check_image
+  #   dependsOn: Test_image
+  #   steps: 
+  #   - task: Bash@3
+  #     displayName: 'Policy check'
+  #     inputs:
+  #       targetType: 'inline'
+  #       script: |
+  #         PASS=$(jq -r '."policy-passed"' verademo.json)
+  #         echo "Passed policy: $PASS"
+  #         if $PASS; then
+  #           exit 0
+  #         else
+  #           exit 1
+  #         fi
 
 
 - stage: Deploy
-  # condition: "false"
   displayName: Deploy container
   jobs:
   - job: Deploy
