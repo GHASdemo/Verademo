@@ -26,7 +26,6 @@ stages:
         publishJUnitResults: true
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
         goals: 'package'
-    # - publish: /home/vsts/work/1/s/app/target/verademo.war
     - publish: $(System.DefaultWorkingDirectory)/app/target/verademo.war
       displayName: 'Publish app for testing'
       artifact: verademo
@@ -55,18 +54,6 @@ stages:
     steps: 
     - download: current
       artifact: verademo
-    # - task: Maven@3
-    #   condition: "false"
-    #   displayName: Build with Maven
-    #   inputs:
-    #     mavenPomFile: 'app/pom.xml'
-    #     mavenOptions: '-Xmx3072m'
-    #     javaHomeOption: 'JDKVersion'
-    #     jdkVersionOption: '1.8'
-    #     jdkArchitectureOption: 'x64'
-    #     publishJUnitResults: true
-    #     testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    #     goals: 'package'
     - task: Bash@3
       displayName: Veracode SAST Pipeline Scan
       inputs:
@@ -74,15 +61,12 @@ stages:
         script: |
           curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
           unzip -o pipeline-scan-LATEST.zip
-          ls -lh ../
-          ls -lh ../verademo
           java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f ../verademo/verademo.war || true
-          # java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f ./app/target/verademo.war || true
     - publish: $(System.DefaultWorkingDirectory)/results.json
       artifact: VeracodeSASTpipeline
 
 - stage: Container
-  condition: "false"
+  # condition: "false"
   displayName: Containerize and test
   jobs:
   - job: Build_image
@@ -95,11 +79,14 @@ stages:
           docker pull mariadb:10.6.2
           docker build --no-cache -t verademo .
           # docker save verademo:latest -o $(System.DefaultWorkingDirectory)/verademo.tar
-    # - publish: $(System.DefaultWorkingDirectory)/verademo.tar
-    #   artifact: Container
+    - publish: $(System.DefaultWorkingDirectory)/verademo.tar
+      artifact: container
+
   - job: Test_image
     dependsOn: Build_image
     steps:
+    - download: current
+      artifact: container
     - task: Bash@3
       displayName: Test image
       inputs:
@@ -109,11 +96,13 @@ stages:
           curl -fsS https://tools.veracode.com/veracode-cli/install | sh
           export VERACODE_API_KEY_ID=$(VERACODE_API_ID)
           export VERACODE_API_KEY_SECRET=$(VERACODE_API_KEY)
+          ls -lh ../
+          ls -lh ../container
           # ./veracode scan --type image --source juliantotzek/verademo:latest --output verademo.json
-          ./veracode scan --type image --source juliantotzek/verademo:latest --format table
-          ./veracode sbom --type image --source juliantotzek/verademo:latest --output verademo_sbom.json
-          # ./veracode scan --type archive --source verademo.tar --output verademo.json
-          # ./veracode sbom --type archive --source verademo.tar --output verademo_sbom.json
+          # ./veracode scan --type image --source juliantotzek/verademo:latest 
+          # ./veracode sbom --type image --source juliantotzek/verademo:latest --output verademo_sbom.json
+          ./veracode scan --type archive --source ../container/verademo.tar --format table
+          ./veracode sbom --type archive --source ../container/verademo.tar --output verademo_sbom.json
     # - task: PublishBuildArtifacts@1
     #   inputs:
     #     PathtoPublish: 'verademo.json'
