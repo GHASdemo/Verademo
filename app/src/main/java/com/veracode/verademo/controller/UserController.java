@@ -22,6 +22,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.text.StringEscapeUtils;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -256,7 +257,7 @@ public class UserController {
 						password,
 						String.format("%0" + (password.length() - 2) + "d", 0).replace("0", "*"));
 			} else {
-				return "No password found for " + username;
+				return "No password found for " + StringEscapeUtils.escapeHtml4(username);
 			}
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
